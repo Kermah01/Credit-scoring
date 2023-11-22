@@ -16,9 +16,11 @@ from sklearn.metrics import roc_auc_score,roc_curve
 from sklearn.model_selection import learning_curve
 from sklearn.preprocessing import RobustScaler
 import streamlit as st
+import plotly.graph_objects as go
 import openpyxl
 import joblib
 import time
+import plotly
 
 #Création du dataframe
 data=openpyxl.load_workbook("BD finale.xlsx")
@@ -41,15 +43,16 @@ df["MARGE"]=df["MARGE"].astype(float)
 df['DATDEP'] = pd.to_datetime(df['DATDEP'], errors='coerce' )
 df["DERNDAT"] = pd.to_datetime(df["DERNDAT"], errors='coerce')
 
+
 #Définition des fonctions
 
 
 # Appliquer le RobustScaler aux nouvelles données
-def apply_robust_scaler(value):
+def apply_robust_scaler(value, var):
     params = {
-    'median': df['DUR_REMB'].median(),
-    'q1': df['DUR_REMB'].quantile(0.25),
-    'q3': df['DUR_REMB'].quantile(0.75)
+    'median': df[var].median(),
+    'q1': df[var].quantile(0.25),
+    'q3': df[var].quantile(0.75)
 }
     scaled_value = (value - params['median']) / (params['q3'] - params['q1'])
     return scaled_value
@@ -67,8 +70,8 @@ def reverse_onehot_encode1(new_values, categories_mapping):
 
 def catégorielle(values_f):
     categories_mapping = {
-        'SEXE': ['homme', 'femme'],
-        'SITUATION_MAT': ['célibataire', 'marié', 'divorcé'],
+        'SEXE': ['homme'],
+        'SITUATION_MAT': ['célibataire', 'marié(e)', 'divorcé(e)','veuf(ve)'],
         'ACTILIB': ['ADMINISTRATIF','AGRO ALIMENTAIRE','ASSURANCE','BANQUE','COMMERCIAL','DIPLOMATIE','DIRECTION GENERALE','DIVERS','ETUDES/RECH./DEVELOP.','FINANCE','INFORMATIQUE, ORGANIS.','JURIDIQUE','MARKETING, PUBLICITE','PRODUCTION','PROFESSIONS LIBERALES','RESSOURCES HUMAINES'],
         'LIBELLE': ['BRIDGE PRET RELAIS','CCT AUTRES CRD','CCT CONSO','CCT CONSO BONNE GAMME','CCT CONSO PER AUTRE','CCT HORS PP','CCT RESTRUCTURES','CCT SCOLAIRE','CMT AUTRES','CMT CONSO','CMT CONSO BONNE GAMME','CMT CONSO PERSO','CMT HAB BONNE GAMME','CMT HAB PATRIMONIALE','CMT HORS PP','CMT RESTRUCTURES'],
         'AGENCELIB': ['AGENCE - ADJAME','AGENCE - AG PRINCIPALE','AGENCE - COCODY','AGENCE - II PLATEAUX 8IEME TRANCHE','AGENCE - MARCORY RESIDENTIEL','AGENCE - PLATEAU SEEN HOTEL','AGENCE - RIVIERA 3','AGENCE - RIVIERA GOLF','AGENCE - SAN PEDRO','AGENCE - TREICHVILLE ZONE 3','AGENCE - ZONE 4 DR BLANCHARD','AGENCE- 2 PLATEAUX RUE DES JARDINS','AGENCE- DEUX PLATEAUX LATRILLE','AGENCE-TREICHVILLE NANAN YAMOUSSO']
@@ -134,13 +137,6 @@ def prédire(x):
 # Créer une fonction pour l'application Streamlit
 def main():
 
-    @st.cache_data
-    def get_img_as_base64(file):
-        with open(file, "rb") as f:
-            data = f.read()
-        return base64.b64encode(data).decode()
-
-
 
     page_bg_img = f"""
     <style>
@@ -192,24 +188,27 @@ def main():
 
 
     st.markdown(page_bg_img, unsafe_allow_html=True)
-    st.markdown('<div class="ribbon">APPLICATION DE CREDIT SCORING BANCAIRE</div>', unsafe_allow_html=True)
-    st.sidebar.title("Entrée Utilisateur")
+    st.markdown('<div style="text-align:center;width:120%;"><h1 style="color:white;background-color:black;border:red;border-style:solid;border-radius:5px; padding: 10px;">APPLICATION DE CREDIT SCORING BANCAIRE</h1></div>', unsafe_allow_html=True)
+
+    #st.markdown('<div class="ribbon">APPLICATION DE CREDIT SCORING BANCAIRE</div>', unsafe_allow_html=True)
+    st.sidebar.image('logo.jpg', use_column_width='always')
+    st.sidebar.title("Informations sur le client")
     duration = st.sidebar.slider("Durée du Remboursement (mois)", min_value=1, max_value=120, value=60)
     amount = st.sidebar.number_input("Montant du Prêt", min_value=0)
-    margin = st.sidebar.number_input("Marge", min_value=0)
+    margin = st.sidebar.number_input("Taux d'intérêt", min_value=0)
     sex = st.sidebar.selectbox("Sexe", ['homme', 'femme'])
-    marital_status = st.sidebar.selectbox("Situation Matrimoniale", ['célibataire', 'marié', 'divorcé'])
+    marital_status = st.sidebar.selectbox("Situation Matrimoniale", ['célibataire', 'marié(e)', 'divorcé(e)', 'veuf(ve)'], )
     job = st.sidebar.selectbox("Activité", ['ADMINISTRATIF', 'AGRO ALIMENTAIRE', 'ASSURANCE', 'BANQUE', 'COMMERCIAL', 'DIPLOMATIE', 'DIRECTION GENERALE', 'DIVERS', 'ETUDES/RECH./DEVELOP.', 'FINANCE', 'INFORMATIQUE, ORGANIS.', 'JURIDIQUE', 'MARKETING, PUBLICITE', 'PRODUCTION', 'PROFESSIONS LIBERALES', 'RESSOURCES HUMAINES'])
-    label = st.sidebar.selectbox("Libellé", ['BRIDGE PRET RELAIS', 'CCT AUTRES CRD', 'CCT CONSO', 'CCT CONSO BONNE GAMME', 'CCT CONSO PER AUTRE', 'CCT HORS PP', 'CCT RESTRUCTURES', 'CCT SCOLAIRE', 'CMT AUTRES', 'CMT CONSO', 'CMT CONSO BONNE GAMME', 'CMT CONSO PERSO', 'CMT HAB BONNE GAMME', 'CMT HAB PATRIMONIALE', 'CMT HORS PP', 'CMT RESTRUCTURES'])
+    label = st.sidebar.selectbox("Type de prêt", ['BRIDGE PRET RELAIS', 'CCT AUTRES CRD', 'CCT CONSO', 'CCT CONSO BONNE GAMME', 'CCT CONSO PER AUTRE', 'CCT HORS PP', 'CCT RESTRUCTURES', 'CCT SCOLAIRE', 'CMT AUTRES', 'CMT CONSO', 'CMT CONSO BONNE GAMME', 'CMT CONSO PERSO', 'CMT HAB BONNE GAMME', 'CMT HAB PATRIMONIALE', 'CMT HORS PP', 'CMT RESTRUCTURES'])
     agency = st.sidebar.selectbox("Agence", ['AGENCE - ADJAME', 'AGENCE - AG PRINCIPALE', 'AGENCE - COCODY', 'AGENCE - II PLATEAUX 8IEME TRANCHE', 'AGENCE - MARCORY RESIDENTIEL', 'AGENCE - PLATEAU SEEN HOTEL', 'AGENCE - RIVIERA 3', 'AGENCE - RIVIERA GOLF', 'AGENCE - SAN PEDRO', 'AGENCE - TREICHVILLE ZONE 3', 'AGENCE - ZONE 4 DR BLANCHARD', 'AGENCE- 2 PLATEAUX RUE DES JARDINS', 'AGENCE- DEUX PLATEAUX LATRILLE', 'AGENCE-TREICHVILLE NANAN YAMOUSSO'])
-    age = st.sidebar.number_input("Age", min_value=0)
+    age = st.sidebar.number_input("Age", min_value=18)
     garantie = st.sidebar.multiselect("Sélectionnez les garanties :", list(categories_mapping_garanties.keys()))
     month = st.sidebar.number_input("Mois_d'octroi_du crédit", min_value=1, max_value=12)
     year = st.sidebar.number_input("Année d'octroi du crédit", min_value=2006, max_value=2050)
 
 
     # Créer un dataframe temporaire pour stocker les valeurs entrées par l'utilisateur
-    l=[duration, apply_robust_scaler(amount), margin]
+    l=[apply_robust_scaler(duration,'DUR_REMB'), apply_robust_scaler(amount, 'MNTPRT'), margin]
     l.extend(catégorielle({'SEXE': sex, 'SITUATION_MAT': marital_status, 'ACTILIB': job, 'LIBELLE': label, 'AGENCELIB': agency}))
     l.extend(map_age_interval_vector(age))
     l.extend(modif_garanties(garantie))
@@ -219,16 +218,92 @@ def main():
     # Afficher le dataframe résultant
     #st.subheader("Données d'entrée utilisateur :")
     #st.write(user_input_df)
+    def jauge(prob):
+        fig_jauge = go.Figure(go.Indicator(
+            mode='gauge+number+delta',
+            # Customer scoring in % df_dashboard['SCORE_CLIENT_%']
+            value=prob,
+            domain={'x': [0, 1], 'y': [0, 1]},
+            title={'text': 'Jauge de la probabilité de défaut', 'font': {'size': 40}},
+            # Scoring of the 10 neighbourgs - test set
+            # df_dashboard['SCORE_10_VOISINS_MEAN_TEST']
+            delta={'reference': 70,
+                'increasing': {'color': 'Crimson'},
+                'decreasing': {'color': 'Green'}},
+            gauge={'axis': {'range': [None, 100],
+                            'tickwidth': 3,
+                            'tickcolor': 'darkblue'},
+                'bar': {'color': 'white', 'thickness': 0.25},
+                'bgcolor': 'white',
+                'borderwidth': 2,
+                'bordercolor': 'gray',
+                'steps': [{'range': [0, 25], 'color': 'Green'},
+                            {'range': [25, 49.49], 'color': 'LimeGreen'},
+                            {'range': [49.5, 50.5], 'color': 'red'},
+                            {'range': [50.51, 75], 'color': 'Orange'},
+                            {'range': [75, 100], 'color': 'Crimson'}],
+                'threshold': {'line': {'color': 'white', 'width': 10},
+                                'thickness': 0.8,
+                                # Customer scoring in %
+                                # df_dashboard['SCORE_CLIENT_%']
+                                'value':prob}}))
+        
+
+        fig_jauge.update_layout(paper_bgcolor='black',
+                                plot_bgcolor='black',
+                                height=600, width=500,
+                                font={'color': 'white', 'family': 'Arial'},
+                                margin=dict(l=0, r=0, b=0, t=0, pad=0),
+                                showlegend=False,
+                                xaxis=dict(showgrid=False, zeroline=False),
+                                yaxis=dict(showgrid=False, zeroline=False),
+                                shapes=[
+                                    dict(
+                                        type='rect',
+                                        xref='paper',
+                                        yref='paper',
+                                        x0=0,
+                                        y0=0,
+                                        x1=1,
+                                        y1=1,
+                                        fillcolor='black',
+                                        opacity=1,
+                                        layer='below',
+                                        line=dict(width=2, color='red'),
+                                    )
+                                ]
+                                )
+        return fig_jauge
+    
     if st.sidebar.button("Prédire"):
         predict, probability=prédire(user_input_df)
         with st.spinner('Wait for it...'):
-            time.sleep(5)
+            time.sleep(3)
         st.success('Prédiction effectuée!')
         p=pd.DataFrame(probability)[1][0]
         st.subheader(f"la probabilité de défaut de paiement est de:{p}%")
+        jauge(p)
+
+        if 0 <= p < 25:
+            score_text = 'Crédit score : EXCELLENT'
+            st.success(score_text)
+        elif 25 <= p < 50:
+            score_text = 'Crédit score : BON'
+            st.success(score_text)
+        elif 50 <= p < 75:
+            score_text = 'Crédit score : MOYEN'
+            st.warning(score_text)
+        else:
+            score_text = 'Crédit score : BAS'
+            st.error(score_text)
+
+        st.plotly_chart(jauge(p),use_container_width=True)
+    else:
+        st.error("Appuyez sur le bouton 'prédire' pour effectuer votre prédiction")
+        st.plotly_chart(jauge(0),use_container_width=True)
         
-
-
+        
+        
 # Exécuter l'application
 if __name__ == '__main__':
     main()
