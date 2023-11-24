@@ -141,7 +141,7 @@ def main():
     page_bg_img = f"""
     <style>
     [data-testid="stAppViewContainer"] > .main {{
-    background-image: url(https://creditplus.com/wp-content/uploads/2021/03/cp-1737-qc-review.jpg);
+    background-image: url(https://teyliom.com/wp-content/uploads/2021/03/BBGCI-TOF.jpg);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
