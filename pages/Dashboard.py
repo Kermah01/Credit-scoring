@@ -148,7 +148,7 @@ fig_ann.update_traces(hovertemplate='<b>Année</b>: %{customdata[1]}<br>'
 #st.plotly_chart(fig_ann)
 
 #Map_agencies
-data = openpyxl.load_workbook(r"C:\Users\DELL I5\Desktop\Classeur2.xlsx")
+data = openpyxl.load_workbook("Classeur2.xlsx")
 datas = data.active
 donnees = []
 for ligne in datas.iter_rows(values_only=True):
