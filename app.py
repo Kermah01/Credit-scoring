@@ -132,7 +132,7 @@ model = joblib.load("best_model1.pkl")
 def prédire(x):
     pred = model.predict(x)
     proba = model.predict_proba(x)
-    proba=np.round(proba*100, 2)
+    proba=np.round(proba*100, 4)
     return pred,proba
 # Créer une fonction pour l'application Streamlit
 def main():
@@ -141,7 +141,7 @@ def main():
     page_bg_img = f"""
     <style>
     [data-testid="stAppViewContainer"] > .main {{
-    background-image: url(https://www.sygnum.com/wp-content/uploads/2022/11/AdobeStock_453778834-scaled.jpeg);
+    background-image: url(https://creditplus.com/wp-content/uploads/2021/03/cp-1737-qc-review.jpg);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -154,7 +154,7 @@ def main():
     .ribbon {{
         background-color: #000;
         color: #fff;
-        text-align: center;
+        text-align: ;
         padding: 10px;
         font-size: 24px;
         font-family: 'Arial', sans-serif;  /* Choisir une belle police */
@@ -188,23 +188,24 @@ def main():
 
 
     st.markdown(page_bg_img, unsafe_allow_html=True)
-    st.markdown('<div style="text-align:center;width:120%;"><h1 style="color:white;background-color:black;border:red;border-style:solid;border-radius:5px; padding: 10px;">APPLICATION DE CREDIT SCORING BANCAIRE</h1></div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center;width:140%;"><h1 style="color:white;background-color:black;border:red;border-style:solid;border-radius:5px; padding: 10px;">APPLICATION DE CREDIT SCORING BANCAIRE</h1></div>', unsafe_allow_html=True)
+    st.write("\n")
+    st.write("\n")
 
     #st.markdown('<div class="ribbon">APPLICATION DE CREDIT SCORING BANCAIRE</div>', unsafe_allow_html=True)
     st.sidebar.image('logo.jpg', use_column_width='always')
     st.sidebar.title("Informations sur le client")
-    duration = st.sidebar.slider("Durée du Remboursement (mois)", min_value=1, max_value=120, value=60)
-    amount = st.sidebar.number_input("Montant du Prêt", min_value=0)
-    margin = st.sidebar.number_input("Taux d'intérêt", min_value=0)
+    duration = st.sidebar.slider("Durée du Remboursement (en mois)", min_value=1, max_value=120, value=60)
+    amount = st.sidebar.number_input("Montant du Prêt (en FCFA)", min_value=0)
+    margin = st.sidebar.number_input("Taux d'intérêt (en %)", min_value=0)
     sex = st.sidebar.selectbox("Sexe", ['homme', 'femme'])
     marital_status = st.sidebar.selectbox("Situation Matrimoniale", ['célibataire', 'marié(e)', 'divorcé(e)', 'veuf(ve)'], )
     job = st.sidebar.selectbox("Activité", ['ADMINISTRATIF', 'AGRO ALIMENTAIRE', 'ASSURANCE', 'BANQUE', 'COMMERCIAL', 'DIPLOMATIE', 'DIRECTION GENERALE', 'DIVERS', 'ETUDES/RECH./DEVELOP.', 'FINANCE', 'INFORMATIQUE, ORGANIS.', 'JURIDIQUE', 'MARKETING, PUBLICITE', 'PRODUCTION', 'PROFESSIONS LIBERALES', 'RESSOURCES HUMAINES'])
     label = st.sidebar.selectbox("Type de prêt", ['BRIDGE PRET RELAIS', 'CCT AUTRES CRD', 'CCT CONSO', 'CCT CONSO BONNE GAMME', 'CCT CONSO PER AUTRE', 'CCT HORS PP', 'CCT RESTRUCTURES', 'CCT SCOLAIRE', 'CMT AUTRES', 'CMT CONSO', 'CMT CONSO BONNE GAMME', 'CMT CONSO PERSO', 'CMT HAB BONNE GAMME', 'CMT HAB PATRIMONIALE', 'CMT HORS PP', 'CMT RESTRUCTURES'])
     agency = st.sidebar.selectbox("Agence", ['AGENCE - ADJAME', 'AGENCE - AG PRINCIPALE', 'AGENCE - COCODY', 'AGENCE - II PLATEAUX 8IEME TRANCHE', 'AGENCE - MARCORY RESIDENTIEL', 'AGENCE - PLATEAU SEEN HOTEL', 'AGENCE - RIVIERA 3', 'AGENCE - RIVIERA GOLF', 'AGENCE - SAN PEDRO', 'AGENCE - TREICHVILLE ZONE 3', 'AGENCE - ZONE 4 DR BLANCHARD', 'AGENCE- 2 PLATEAUX RUE DES JARDINS', 'AGENCE- DEUX PLATEAUX LATRILLE', 'AGENCE-TREICHVILLE NANAN YAMOUSSO'])
-    age = st.sidebar.number_input("Age", min_value=18)
+    age = st.sidebar.number_input("Age (en années)", min_value=18)
     garantie = st.sidebar.multiselect("Sélectionnez les garanties :", list(categories_mapping_garanties.keys()))
-    month = st.sidebar.number_input("Mois_d'octroi_du crédit", min_value=1, max_value=12)
-    year = st.sidebar.number_input("Année d'octroi du crédit", min_value=2006, max_value=2050)
+    month = st.sidebar.number_input("Mois d'octroi du crédit", min_value=1, max_value=12)
 
 
     # Créer un dataframe temporaire pour stocker les valeurs entrées par l'utilisateur
@@ -212,7 +213,7 @@ def main():
     l.extend(catégorielle({'SEXE': sex, 'SITUATION_MAT': marital_status, 'ACTILIB': job, 'LIBELLE': label, 'AGENCELIB': agency}))
     l.extend(map_age_interval_vector(age))
     l.extend(modif_garanties(garantie))
-    l.extend([month,year])
+    l.extend([month])
     user_input_df = pd.DataFrame(l).T
 
     # Afficher le dataframe résultant
@@ -224,7 +225,7 @@ def main():
             # Customer scoring in % df_dashboard['SCORE_CLIENT_%']
             value=prob,
             domain={'x': [0, 1], 'y': [0, 1]},
-            title={'text': 'Jauge de la probabilité de défaut', 'font': {'size': 40}},
+            title={'text': 'JAUGE DE LA PROBABILITE DE DEFAUT', 'font': {'size': 30}},
             # Scoring of the 10 neighbourgs - test set
             # df_dashboard['SCORE_10_VOISINS_MEAN_TEST']
             delta={'reference': 70,
@@ -249,9 +250,9 @@ def main():
                                 'value':prob}}))
         
 
-        fig_jauge.update_layout(paper_bgcolor='black',
-                                plot_bgcolor='black',
-                                height=600, width=500,
+        fig_jauge.update_layout(paper_bgcolor='rgba(0, 0, 0, 0.3)',
+                                plot_bgcolor='rgba(0, 0, 0, 0.3)',
+                                height=500, width=600,
                                 font={'color': 'white', 'family': 'Arial'},
                                 margin=dict(l=0, r=0, b=0, t=0, pad=0),
                                 showlegend=False,
@@ -266,10 +267,10 @@ def main():
                                         y0=0,
                                         x1=1,
                                         y1=1,
-                                        fillcolor='black',
+                                        fillcolor='rgba(0, 0, 0, 0.3)',
                                         opacity=1,
                                         layer='below',
-                                        line=dict(width=2, color='red'),
+                                        line=dict(width=4, color='red'),
                                     )
                                 ]
                                 )
@@ -277,30 +278,67 @@ def main():
     
     if st.sidebar.button("Prédire"):
         predict, probability=prédire(user_input_df)
-        with st.spinner('Wait for it...'):
-            time.sleep(3)
-        st.success('Prédiction effectuée!')
+        progress_text = "Operation in progress. Please wait."
+        my_bar = st.progress(0, text=progress_text)
+
+        for percent_complete in [0,33,66]:
+            time.sleep(0.01)
+            my_bar.progress(percent_complete + 33, text=progress_text)
+            time.sleep(1)
+            my_bar.empty()
+
+        
+
         p=pd.DataFrame(probability)[1][0]
         st.subheader(f"la probabilité de défaut de paiement est de:{p}%")
         jauge(p)
-
-        if 0 <= p < 25:
-            score_text = 'Crédit score : EXCELLENT'
-            st.success(score_text)
-        elif 25 <= p < 50:
-            score_text = 'Crédit score : BON'
-            st.success(score_text)
-        elif 50 <= p < 75:
-            score_text = 'Crédit score : MOYEN'
-            st.warning(score_text)
-        else:
-            score_text = 'Crédit score : BAS'
-            st.error(score_text)
-
-        st.plotly_chart(jauge(p),use_container_width=True)
+        col1, col2, col3 = st.columns([2.85,4.95,2.20])
+        with col1:
+            st.write(' ')
+            
+        with col2:
+            
+            st.plotly_chart(jauge(p))
+        with col3:
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            st.write("\n")
+            if 0 <= p < 25:
+                score_text = 'Crédit score : EXCELLENT'
+                st.success(score_text)
+            elif 25 <= p < 50:
+                score_text = 'Crédit score : BON'
+                st.success(score_text)
+            elif 50 <= p < 75:
+                score_text = 'Crédit score : MOYEN'
+                st.warning(score_text)
+            else:
+                score_text = 'Crédit score : BAS'
+                st.error(score_text)
     else:
-        st.error("Appuyez sur le bouton 'prédire' pour effectuer votre prédiction")
-        st.plotly_chart(jauge(0),use_container_width=True)
+        #st.error("Appuyez sur le bouton 'prédire' pour effectuer votre prédiction")
+        col4, col5, col6 = st.columns([2.75,7,0.25])
+        with col4:
+            st.write(' ')
+        with col5:
+            st.plotly_chart(jauge(0))
+        with col6:
+            st.write(' ')
         
         
         
