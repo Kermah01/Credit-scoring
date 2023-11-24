@@ -75,7 +75,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-st.markdown('<div style="text-align:center;width:185%;"><h1 style="color:white;background-color:black;border:red;border-style:solid;border-radius:5px;">TABLEAU DE BORD INTERACTIF</h1></div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center;width:182%;"><h1 style="color:white;background-color:black;border:red;border-style:solid;border-radius:5px;">TABLEAU DE BORD INTERACTIF</h1></div>', unsafe_allow_html=True)
 
 colors = px.colors.sequential.Rainbow_r
 # Section des graphiques sommaires
