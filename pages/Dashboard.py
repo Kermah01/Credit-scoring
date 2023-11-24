@@ -109,8 +109,8 @@ with hist:
 st.sidebar.subheader("ANALYSE CROISEE ENTRE VARIABLES NUMERIQUES")
 int_columns = df.select_dtypes(include="int").columns
 float_columns = df.select_dtypes(include="float").columns
-selected_variable_3 = st.sidebar.selectbox("***:gray[Variable 1 :]***", ['AGE','DUREE DE REMBOURSEMENT',"TAUX D'INTERÊT","MONTANT SOLLICITE"])
-selected_variable_4 = st.sidebar.selectbox("***:gray[Variable 2 :]***", ['AGE','DUREE DE REMBOURSEMENT',"TAUX D'INTERÊT","MONTANT SOLLICITE"])
+selected_variable_3 = st.sidebar.selectbox("***:gray[Variable 1 :]***", ['AGE','DUREE DE REMBOURSEMENT',"TAUX D'INTERET","MONTANT SOLLICITE"])
+selected_variable_4 = st.sidebar.selectbox("***:gray[Variable 2 :]***", ['AGE','DUREE DE REMBOURSEMENT',"TAUX D'INTERET","MONTANT SOLLICITE"])
 
 df["ANNEE D'OCTROI DU CREDIT"] = df["ANNEE D'OCTROI DU CREDIT"].astype(str)
 order_of_years = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017','2018','2019','2020','2021','2022']
