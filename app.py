@@ -241,8 +241,8 @@ def main():
                 'steps': [{'range': [0, 25], 'color': 'Green'},
                             {'range': [25, 49.49], 'color': 'LimeGreen'},
                             {'range': [49.5, 50.5], 'color': 'red'},
-                            {'range': [50.51, 75], 'color': 'Orange'},
-                            {'range': [75, 100], 'color': 'Crimson'}],
+                            {'range': [50.51, 69.99], 'color': 'Orange'},
+                            {'range': [70, 100], 'color': 'Crimson'}],
                 'threshold': {'line': {'color': 'white', 'width': 10},
                                 'thickness': 0.8,
                                 # Customer scoring in %
@@ -324,11 +324,11 @@ def main():
             elif 25 <= p < 50:
                 score_text = 'Crédit score : BON'
                 st.success(score_text)
-            elif 50 <= p < 75:
+            elif 50 <= p < 70:
                 score_text = 'Crédit score : MOYEN'
                 st.warning(score_text)
             else:
-                score_text = 'Crédit score : BAS'
+                score_text = 'Crédit score : ÉLEVÉ \n (crédit potentiellement risqué!)'
                 st.error(score_text)
     else:
         #st.error("Appuyez sur le bouton 'prédire' pour effectuer votre prédiction")
