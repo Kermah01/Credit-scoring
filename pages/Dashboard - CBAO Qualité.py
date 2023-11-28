@@ -5,7 +5,7 @@ import openpyxl
 import numpy as np
 from streamlit_extras.metric_cards import style_metric_cards # beautify metric card with css
 # Chargement des données
-data = openpyxl.load_workbook(r"C:\Users\DELL I5\Desktop\CBAO\BBAID CBAO.xlsx")
+data = openpyxl.load_workbook("BBAID CBAO.xlsx")
 datas = data.active
 donnees = []
 for ligne in datas.iter_rows(values_only=True):
