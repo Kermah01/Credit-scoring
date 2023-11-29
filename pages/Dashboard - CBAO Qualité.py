@@ -142,7 +142,7 @@ with actu:
     avis=(df[df['Mois']==selected_month]['Motifs de la note de l\'accueil'].count()+df[df['Mois']==selected_month]['Motifs de la note de la prise en charge'].count())/2 
     suggestions = df[df['Mois']==selected_month]['Suggestions'].count()
     st.metric("Nbre total d'avis",avis,"13")
-    st.metric("Nbre total de suggestion", suggestions,"-12")
+    st.metric("Nbre total de suggestions", suggestions,"-12")
 
 with palm:
     st.subheader("Palmarès Zone",divider="rainbow")
