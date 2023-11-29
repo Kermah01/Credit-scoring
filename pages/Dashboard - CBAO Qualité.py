@@ -32,7 +32,7 @@ st.set_page_config(layout="wide")
 page_bg_img = f"""
 <style>
 [data-testid="stAppViewContainer"] > .main {{
-background-image: url(https://www.apitasolution.com/wp-content/uploads/2023/04/cbao-devanture.jpg);
+background-image: url(https://www.apitasolution.com/wp-content/uploads/2023/04/cbao-devanture.jpg));
 background-size: cover;
 background-position: center;
 background-repeat: no-repeat;
