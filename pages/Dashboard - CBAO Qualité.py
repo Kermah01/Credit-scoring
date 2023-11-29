@@ -2,8 +2,11 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import openpyxl
+from openpyxl import load_workbook
 import numpy as np
 from streamlit_extras.metric_cards import style_metric_cards # beautify metric card with css
+
+st.set_page_config(layout="wide")
 # Chargement des données
 data = openpyxl.load_workbook("BBAID CBAO.xlsx")
 datas = data.active
@@ -13,6 +16,26 @@ for ligne in datas.iter_rows(values_only=True):
 en_tetes = donnees[0]
 donnees = donnees[1:]
 df = pd.DataFrame(donnees, columns=en_tetes)
+
+def read_excel_file(file):
+    data = load_workbook(file)
+    datas = data.active
+    donnees = []
+    for ligne in datas.iter_rows(values_only=True):
+        donnees.append(list(ligne))
+    en_tetes = donnees[0]
+    donnees = donnees[1:]
+    new_df = pd.DataFrame(donnees, columns=en_tetes)
+    return new_df
+
+uploaded_file = st.sidebar.file_uploader("Télécharger un fichier Excel", type=["xlsx"])
+
+# Vérifier si un fichier a été téléchargé
+if uploaded_file is not None:
+    # Utiliser la fonction pour lire le fichier Excel
+    df = read_excel_file(uploaded_file)
+
+
 
 pec_agence=df.groupby('Agence')['Note de la prise en charge'].mean()
 # Thème des graphiques
@@ -28,7 +51,7 @@ df["Jour"]=df["Jour"].map({0:"Lundi",1:"Mardi",2:"Mercredi",3:"Jeudi",4:"Vendred
 order_of_days = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
 df["Jour*"] = pd.Categorical(df["Jour"], categories=order_of_days, ordered=True)
 
-st.set_page_config(layout="wide")
+
 page_bg_img = f"""
 <style>
 [data-testid="stAppViewContainer"] > .main {{
@@ -77,6 +100,8 @@ st.markdown(
 st.markdown('<div style="text-align:center;width:100%;"><h1 style="color:black;background-color:#f7a900;border:#fc1c24;border-style:solid;border-radius:5px;">TABLEAU DE BORD INTERACTIF DE LA BOITE A IDEES DIGITALE</h1></div>', unsafe_allow_html=True)
 
 colors = px.colors.sequential.Rainbow_r
+colors.extend(px.colors.sequential.Agsunset)
+colors.extend(px.colors.sequential.Aggrnyl)
 # Section des graphiques sommaires
 
 
@@ -97,7 +122,9 @@ def palmarès(month_sel):
     result_mois = df[df['Mois'] == month_sel].groupby(['Zone', 'Mois'])['Mois'].count().reset_index(name="Mensuel")
     result_zone = df.groupby(['Zone'])['Mois'].count().reset_index(name="Annuel")
     # Fusion des résultats dans un DataFrame
-    return pd.merge(result_mois, result_zone, on='Zone', how='left')
+    d=pd.merge(result_mois, result_zone, on='Zone', how='inner')
+    d.sort_values(by=["Annuel"],inplace=True,ascending=False)
+    return d
 
 def format_ranking_index(df, index_col='Position'):
     df[index_col] = df.index + 1
@@ -106,7 +133,7 @@ def format_ranking_index(df, index_col='Position'):
 
 
 
-selected_month = st.selectbox("Sélectionnez le mois",df["Mois"].unique())
+selected_month = st.selectbox("Sélectionnez le mois",order_of_months)
 actu, palm,top=st.columns(3)
 
 with actu:
@@ -149,6 +176,7 @@ with hist:
         fig_histogram.update_xaxes(categoryorder='array', categoryarray=order_of_months)
     elif selected_categorical_variable=="Jour":
         fig_histogram.update_xaxes(categoryorder='array', categoryarray=order_of_days)
+    fig_histogram.update_xaxes(showticklabels=False)
     st.plotly_chart(fig_histogram,use_container_width=True)
 
 
@@ -178,7 +206,7 @@ type_graph=st.sidebar.radio("Choisissez le type de graphique", ['empilé','étal
 with quant:
     fig_scatter_matrix = px.scatter(df, x=selected_variable_3, y=selected_variable_4,color_discrete_sequence=colors)
     fig_scatter_matrix.update_layout(title=f'Nuage de points entre {selected_variable_3} et {selected_variable_4}')
-    fig_scatter_matrix.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0.3)',},title_x=0.25)
+    fig_scatter_matrix.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0.3)',},title_x=0.15)
     st.plotly_chart(fig_scatter_matrix, use_container_width=True)
 with qual:
     if selected_variable_2 in ["Note de l'accueil","Note de la prise en charge"]:
@@ -191,7 +219,7 @@ with qual:
         elif selected_variable_1=="Jour" or selected_variable_2=="Jour":
             fig_croisé.update_xaxes(categoryorder='array', categoryarray=order_of_days)
     fig_croisé.update_layout(title=f'Graphique en barres groupées - {selected_variable_1 } vs {selected_variable_2 }')
-    fig_croisé.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0.3)',},title_x=0.28)
+    fig_croisé.update_layout({'plot_bgcolor': 'rgba(0, 0, 0, 0)','paper_bgcolor': 'rgba(0, 0, 0, 0.3)',},title_x=0.20)
 
     st.plotly_chart(fig_croisé,use_container_width=True)
 
