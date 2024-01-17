@@ -21,7 +21,7 @@ import openpyxl
 import joblib
 import time
 import plotly
-
+st.set_page_config(layout="wide")
 #Création du dataframe
 data=openpyxl.load_workbook("BD finale.xlsx")
 datas=data.active
@@ -188,7 +188,7 @@ def main():
 
 
     st.markdown(page_bg_img, unsafe_allow_html=True)
-    st.markdown('<div style="text-align:center;width:140%;"><h1 style="color:white;background-color:black;border:red;border-style:solid;border-radius:5px; padding: 10px;">APPLICATION DE CREDIT SCORING BANCAIRE</h1></div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center;width:100%;"><h1 style="color:white;background-color:black;border:red;border-style:solid;border-radius:5px; padding: 10px;">APPLICATION DE CREDIT SCORING BANCAIRE</h1></div>', unsafe_allow_html=True)
     st.write("\n")
     st.write("\n")
 
