@@ -311,7 +311,7 @@ df["Taux de défauts de paiement"]=df['Nbre de crédits risqués par agence']/df
 df["Taux de défauts de paiement en pct"]=df["Taux de défauts de paiement"].map(lambda x: f'{x:.2%}')
 center_lat = 5.31908
 center_lon = -4.01299
-px.set_mapbox_access_token('pk.eyJ1IjoiZXhhbXBsZXMiLCJhIjoiY2lqbmpqazdlMDBsdnRva284cWd3bm11byJ9.V6Hg2oYJwMAxeoR9GEzkAA')
+px.set_mapbox_access_token('pk.eyJ1IjoicXM2MjcyNTI3IiwiYSI6ImNraGRuYTF1azAxZmIycWs0cDB1NmY1ZjYifQ.I1VJ3KjeM-S613FLv3mtkw')
 
 fig_map = px.scatter_mapbox(df, lat=df.latitude, lon=df.longitude, color="Taux de défauts de paiement", size="size",
                   color_continuous_scale=px.colors.diverging.RdYlGn_r, zoom=12,custom_data=[df['AGENCES'],df['size'],df['Taux de défauts de paiement en pct']],size_max=40)
