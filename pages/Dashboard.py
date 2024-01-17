@@ -237,7 +237,7 @@ quant,qual=st.columns(2,gap='medium')
 
     
 with quant:
-    st.subheader("Analyse croisée entre variables catégorielles")
+    st.subheader("Analyse croisée entre variables numériques")
     int_columns = df.select_dtypes(include="int").columns
     float_columns = df.select_dtypes(include="float").columns
     selected_variable_3 = st.selectbox("***Variable 1***", int_columns.union(float_columns))
