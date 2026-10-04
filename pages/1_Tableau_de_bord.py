@@ -15,8 +15,13 @@ from theme import (  # noqa: E402 — dépend du sys.path ci-dessus
     PRIMARY,
     SEQ_RISK,
     STATUT_COLORS,
+    demo_note,
+    footer,
     hero,
     inject_css,
+    kpi_band,
+    sidebar_brand,
+    sidebar_page_link,
     style_fig,
 )
 
@@ -54,7 +59,8 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
     """Filtres simples dans la barre latérale."""
-    st.sidebar.title("🎛️ Filtres")
+    sidebar_brand("Tableau de bord")
+    st.sidebar.markdown("#### Filtres")
     agences_sel = st.sidebar.multiselect("Agence", sorted(df["AGENCE"].unique()))
     types_sel = st.sidebar.multiselect("Type de prêt", sorted(df["TYPE DE PRÊT"].unique()))
     annees = sorted(df["ANNEE D'OCTROI"].unique())
@@ -70,23 +76,65 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
         out = out[out["TYPE DE PRÊT"].isin(types_sel)]
     if statut_sel:
         out = out[out["STATUT DU PRÊT"].isin(statut_sel)]
+
+    sidebar_page_link("app.py", "Scorer un dossier", "🎯")
+    st.sidebar.caption(
+        "Portefeuille 100 % synthétique — aucun client ni établissement réel."
+    )
     return out
 
 
-def kpi_row(df: pd.DataFrame) -> None:
-    c1, c2, c3, c4, c5 = st.columns(5)
-    montant_moyen = f"{df['MONTANT SOLLICITE'].mean():,.0f}".replace(",", " ")
-    c1.metric("Prêts", f"{len(df):,}".replace(",", " "))
-    c2.metric("Montant moyen", f"{montant_moyen} FCFA")
-    c3.metric("Durée moyenne", f"{df['DUREE DE REMBOURSEMENT'].mean():.0f} mois")
-    taux_moyen = df["TAUX D'INTERET"].mean()
-    c4.metric("Taux d'intérêt moyen", f"{taux_moyen:.2f} %")
-    c5.metric("Taux de défaut", f"{df['STATUT'].mean():.1%}".replace(".", ","))
+def _fr(x: float, fmt: str) -> str:
+    return format(x, fmt).replace(",", " ").replace(".", ",")
 
 
-def tab_overview(df: pd.DataFrame) -> None:
-    kpi_row(df)
-    st.divider()
+def kpi_row(df: pd.DataFrame, full: pd.DataFrame) -> None:
+    """Bandeau KPI premium : valeur du périmètre filtré + delta vs portefeuille."""
+    filtered = len(df) != len(full)
+
+    def delta(cur: float, ref: float, fmt: str, unit: str, inverse: bool = False):
+        if not filtered:
+            return None, None
+        d = cur - ref
+        if abs(d) < 1e-9:
+            return "±0", None
+        sign = "+" if d > 0 else "−"
+        good = (d < 0) if inverse else (d > 0)
+        return f"{sign}{_fr(abs(d), fmt)}{unit}", good
+
+    taux_moyen, taux_ref = df["TAUX D'INTERET"].mean(), full["TAUX D'INTERET"].mean()
+    defaut, defaut_ref = df["STATUT"].mean(), full["STATUT"].mean()
+    montant, montant_ref = df["MONTANT SOLLICITE"].mean(), full["MONTANT SOLLICITE"].mean()
+    duree, duree_ref = df["DUREE DE REMBOURSEMENT"].mean(), full["DUREE DE REMBOURSEMENT"].mean()
+
+    d_mt, g_mt = delta(montant / 1e6, montant_ref / 1e6, ".1f", " M")
+    d_du, g_du = delta(duree, duree_ref, ".0f", " mois")
+    d_tx, g_tx = delta(taux_moyen, taux_ref, ".2f", " pt", inverse=True)
+    d_df, g_df = delta(defaut * 100, defaut_ref * 100, ".1f", " pt", inverse=True)
+
+    kpi_band([
+        {"icon": "folder", "label": "Prêts", "value": f"{len(df):,}".replace(",", " "),
+         "sub": (f"{len(df) / len(full):.0%} du portefeuille" if filtered
+                 else "portefeuille complet"),
+         "delta": None},
+        {"icon": "coins", "label": "Montant moyen",
+         "value": _fr(montant / 1e6, ",.2f"), "unit": "M FCFA",
+         "delta": d_mt, "good": g_mt, "sub": "vs portefeuille" if d_mt else None},
+        {"icon": "clock", "label": "Durée moyenne",
+         "value": f"{duree:.0f}", "unit": "mois",
+         "delta": d_du, "good": g_du, "sub": "vs portefeuille" if d_du else None},
+        {"icon": "percent", "label": "Taux d'intérêt moyen",
+         "value": _fr(taux_moyen, ".2f"), "unit": "%",
+         "delta": d_tx, "good": g_tx, "sub": "vs portefeuille" if d_tx else None},
+        {"icon": "pulse", "label": "Taux de défaut",
+         "value": _fr(defaut * 100, ".1f"), "unit": "%",
+         "delta": d_df, "good": g_df, "sub": "vs portefeuille" if d_df else None},
+    ])
+
+
+def tab_overview(df: pd.DataFrame, full: pd.DataFrame) -> None:
+    kpi_row(df, full)
+    st.markdown("")
 
     chrono = (
         df.groupby(["ANNEE D'OCTROI", "STATUT DU PRÊT"], observed=True)
@@ -222,19 +270,26 @@ def tab_data(df: pd.DataFrame) -> None:
 
 
 def main() -> None:
+    df_full, agences = load_data()
+    volume = df_full["MONTANT SOLLICITE"].sum() / 1e9
+
     hero(
         "Tableau de bord du portefeuille",
         "Explorez le portefeuille de prêts synthétique : production, risque, "
         "analyses croisées et cartographie des agences fictives.",
+        badges=[
+            ("folder", f"{len(df_full):,}".replace(",", " "), "prêts"),
+            ("coins", f"{volume:.1f}".replace(".", ","), "Mds FCFA d'encours"),
+            ("map", f"{df_full['AGENCE'].nunique()}", "agences"),
+        ],
     )
-    st.warning(
-        "**Démonstration — données 100 % fictives**, générées synthétiquement "
-        "à des fins de démonstration. Aucun client ni établissement réel.",
-        icon="⚠️",
+    demo_note(
+        "<b>Démonstration — données 100 % fictives</b>, générées "
+        "synthétiquement à des fins de démonstration. Aucun client ni "
+        "établissement réel."
     )
 
-    df, agences = load_data()
-    df = apply_filters(df)
+    df = apply_filters(df_full)
 
     if df.empty:
         st.info("Aucun prêt ne correspond aux filtres sélectionnés.")
@@ -244,13 +299,18 @@ def main() -> None:
         ["Vue d'ensemble", "Analyses", "Carte des agences", "Données"]
     )
     with t1:
-        tab_overview(df)
+        tab_overview(df, df_full)
     with t2:
         tab_analyses(df)
     with t3:
         tab_map(df, agences)
     with t4:
         tab_data(df)
+
+    footer(
+        "Projet de démonstration — scoring de crédit par apprentissage automatique.",
+        "Scorez un dossier dans la page <b>Credit Scoring</b>.",
+    )
 
 
 if __name__ == "__main__":
