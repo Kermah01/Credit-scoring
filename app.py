@@ -20,18 +20,21 @@ from generate_synthetic_data import (
     SITUATIONS,
     TYPES_PRET,
 )
+from theme import (
+    AXIS,
+    COLOR_CRITICAL,
+    COLOR_GOOD,
+    COLOR_SERIOUS,
+    COLOR_WARNING,
+    FONT_DISPLAY,
+    INK,
+    MUTED,
+    hero,
+    inject_css,
+)
 
 ROOT = Path(__file__).parent
 MODEL_PATH = ROOT / "model" / "model.pkl"
-
-# Palette sobre (validée pour l'accessibilité) — statuts de risque
-COLOR_GOOD = "#0ca30c"
-COLOR_WARNING = "#fab219"
-COLOR_SERIOUS = "#ec835a"
-COLOR_CRITICAL = "#d03b3b"
-COLOR_PRIMARY = "#2a78d6"
-INK = "#0b0b0b"
-MUTED = "#898781"
 
 st.set_page_config(
     page_title="Credit Scoring App — Démo",
@@ -39,6 +42,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+inject_css()
 
 
 @st.cache_resource(show_spinner="Chargement du modèle…")
@@ -63,13 +67,16 @@ def gauge(prob: float) -> go.Figure:
         go.Indicator(
             mode="gauge+number",
             value=prob,
-            number={"suffix": " %", "font": {"size": 44, "color": INK}},
+            number={
+                "suffix": " %",
+                "font": {"size": 46, "color": INK, "family": FONT_DISPLAY},
+            },
             domain={"x": [0, 1], "y": [0, 1]},
             gauge={
                 "axis": {
                     "range": [0, 100],
                     "tickwidth": 1,
-                    "tickcolor": MUTED,
+                    "tickcolor": AXIS,
                     "tickfont": {"color": MUTED},
                 },
                 "bar": {"color": INK, "thickness": 0.22},
@@ -87,8 +94,6 @@ def gauge(prob: float) -> go.Figure:
     fig.update_layout(
         height=320,
         margin=dict(l=30, r=30, t=30, b=10),
-        paper_bgcolor="rgba(0,0,0,0)",
-        font={"family": "system-ui, sans-serif"},
     )
     return fig
 
@@ -150,10 +155,11 @@ def sidebar_inputs() -> dict:
 
 
 def main() -> None:
-    st.title("💳 Credit Scoring App — Démo")
-    st.caption(
-        "Estimation de la probabilité de défaut de paiement d'un emprunteur "
-        "à partir d'un modèle de machine learning entraîné sur des données synthétiques."
+    hero(
+        "Credit Scoring",
+        "Estimez en un clic la probabilité de défaut de paiement d'un emprunteur, "
+        "grâce à un modèle de machine learning entraîné sur un portefeuille "
+        "entièrement synthétique.",
     )
     disclaimer()
 

@@ -1,5 +1,6 @@
 """Tableau de bord interactif du portefeuille de prêts synthétique."""
 
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -7,16 +8,20 @@ import plotly.express as px
 import streamlit as st
 
 ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from theme import (  # noqa: E402 — dépend du sys.path ci-dessus
+    CATEGORICAL,
+    PRIMARY,
+    SEQ_RISK,
+    STATUT_COLORS,
+    hero,
+    inject_css,
+    style_fig,
+)
+
 DATA_PATH = ROOT / "data" / "donnees_synthetiques.xlsx"
 AGENCES_PATH = ROOT / "data" / "agences.xlsx"
-
-# Palette sobre validée (identité : ordre fixe, jamais recyclé)
-CATEGORICAL = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100",
-               "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
-PRIMARY = "#2a78d6"
-CRITICAL = "#d03b3b"
-SEQ_RISK = ["#fbe3e3", "#f3b0b0", "#e87f7e", "#d03b3b", "#9c2626"]
-STATUT_COLORS = {"Sain": PRIMARY, "En défaut": CRITICAL}
 
 MOIS_FR = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet",
            "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
@@ -31,6 +36,7 @@ st.set_page_config(
     page_icon="📊",
     layout="wide",
 )
+inject_css()
 
 
 @st.cache_data(show_spinner="Chargement des données…")
@@ -44,20 +50,6 @@ def load_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     )
     agences = pd.read_excel(AGENCES_PATH)
     return df, agences
-
-
-def style_fig(fig, height: int = 420):
-    fig.update_layout(
-        height=height,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font={"family": "system-ui, sans-serif", "color": "#52514e"},
-        margin=dict(l=10, r=10, t=50, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0),
-    )
-    fig.update_xaxes(gridcolor="#e1e0d9", linecolor="#c3c2b7", zeroline=False)
-    fig.update_yaxes(gridcolor="#e1e0d9", linecolor="#c3c2b7", zeroline=False)
-    return fig
 
 
 def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
@@ -203,7 +195,7 @@ def tab_map(df: pd.DataFrame, agences: pd.DataFrame) -> None:
         hover_data={"latitude": False, "longitude": False,
                     "Taux de défaut": False,
                     "Nombre de prêts": True, "Taux de défaut (%)": True},
-        map_style="carto-positron",
+        map_style="carto-darkmatter",
     )
     fig.update_layout(
         height=620, margin=dict(l=0, r=0, t=10, b=0),
@@ -230,7 +222,11 @@ def tab_data(df: pd.DataFrame) -> None:
 
 
 def main() -> None:
-    st.title("📊 Tableau de bord du portefeuille")
+    hero(
+        "Tableau de bord du portefeuille",
+        "Explorez le portefeuille de prêts synthétique : production, risque, "
+        "analyses croisées et cartographie des agences fictives.",
+    )
     st.warning(
         "**Démonstration — données 100 % fictives**, générées synthétiquement "
         "à des fins de démonstration. Aucun client ni établissement réel.",
