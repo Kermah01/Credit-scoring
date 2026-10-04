@@ -106,3 +106,37 @@ binaires) et mois d'octroi.
 ## Licence
 
 Projet de démonstration à but pédagogique.
+
+## Déploiement (Streamlit Community Cloud)
+
+1. Rendez-vous sur [share.streamlit.io](https://share.streamlit.io) et connectez-vous avec votre compte GitHub.
+2. Cliquez sur **New app**, puis choisissez ce dépôt, la branche à déployer et le fichier principal `app.py`.
+3. Cliquez sur **Deploy** : l'application est construite puis mise en ligne sur une URL du type `https://<nom-de-l-appli>.streamlit.app`.
+
+> **Version Python** : dans **Advanced settings** (avant le déploiement), choisissez une
+> version récente de Python (3.11 ou 3.12), compatible avec les versions minimales
+> listées dans `requirements.txt`.
+> Le modèle `model/model.pkl` étant sérialisé avec scikit-learn, gardez une version
+> de Python et de scikit-learn cohérente avec celle de l'entraînement (relancez
+> `train_model.py` en cas d'incompatibilité au chargement).
+
+### Éviter l'hibernation
+
+Streamlit Community Cloud met l'application en veille après environ 12 heures sans
+trafic (un visiteur tombe alors sur un écran « l'appli se réveille » pendant
+plusieurs dizaines de secondes). Pour l'éviter, ce dépôt contient le workflow
+GitHub Actions [`.github/workflows/keep-alive.yml`](.github/workflows/keep-alive.yml)
+qui envoie un ping HTTP à l'application toutes les 4 heures (cron `17 */4 * * *`).
+
+Après le déploiement, renseignez l'URL de l'appli dans une variable de dépôt :
+
+1. Sur GitHub : **Settings → Secrets and variables → Actions → Variables → New repository variable**.
+2. Name : `APP_URL` — Value : l'URL publique de l'appli (ex. `https://<nom-de-l-appli>.streamlit.app`).
+
+Tant que `APP_URL` n'est pas définie, le workflow se termine sans rien faire (et sans
+échouer). À noter : GitHub désactive les workflows planifiés après 60 jours sans activité
+sur le dépôt ; il suffit alors de le relancer une fois manuellement via l'onglet
+**Actions → Keep-alive Streamlit → Run workflow**.
+
+Alternative sans GitHub Actions : créer un moniteur HTTP(S) gratuit sur
+[UptimeRobot](https://uptimerobot.com) qui interroge l'URL de l'appli toutes les 5 minutes.
