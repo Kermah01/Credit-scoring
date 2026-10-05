@@ -12,34 +12,25 @@ du portefeuille de prêts.
 
 ## Fonctionnalités
 
-- **Scoring interactif** : saisie d'un dossier de prêt (montant, durée, taux,
-  profil de l'emprunteur, garanties) et calcul en temps réel de la probabilité
-  de défaut, restituée via une jauge Plotly et une synthèse chiffrée.
-- **Tableau de bord** du portefeuille : indicateurs clés (volume, montant moyen,
-  taux de défaut), analyses univariées et croisées, distributions, production de
-  crédits dans le temps, et carte interactive du risque par agence.
-- **Filtres dynamiques** par agence, type de prêt, période d'octroi et statut.
-- **Pipeline ML reproductible** : génération des données synthétiques,
-  entraînement (régression logistique vs forêt aléatoire, validation croisée)
-  et sérialisation du meilleur modèle sous forme de Pipeline scikit-learn
-  complet (prétraitement inclus).
+- **Scoring interactif** (`app.py`) : saisie du dossier client dans la barre
+  latérale (durée, montant, taux, sexe, situation matrimoniale, activité, type
+  de prêt, agence, âge, garanties, mois d'octroi), puis bouton **Prédire** :
+  probabilité de défaut affichée avec une jauge Plotly et un verdict
+  (EXCELLENT / BON / MOYEN / ÉLEVÉ).
+- **Tableau de bord interactif** (`pages/Dashboard.py`) : visualisation et
+  filtrage de la base, camembert et histogramme, analyses croisées entre
+  variables numériques et catégorielles, graphique chronologique et carte du
+  taux de défaut par agence.
 
-## Aperçu
+## Design
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  💳 Credit Scoring App — Démo                               │
-│  ⚠️ Démonstration — données 100 % fictives                  │
-├──────────────┬──────────────────────────────────────────────┤
-│  Dossier     │   Probabilité de défaut        Synthèse      │
-│  ─ Montant   │        ╭─────────╮         ┌──────┬──────┐   │
-│  ─ Durée     │        │  23,4 % │         │ 23,4%│ 5 M  │   │
-│  ─ Taux      │        ╰─────────╯         ├──────┼──────┤   │
-│  ─ Profil    │     🟢──🟡──🟠──🔴          │ 48 m │ 8,5 %│   │
-│  ─ Garanties │                            └──────┴──────┘   │
-│  [Calculer]  │   ✅ Risque faible — profil excellent        │
-└──────────────┴──────────────────────────────────────────────┘
-```
+Le design est celui de la version d'origine de l'application : thème sombre,
+bandeau-titre noir bordé de rouge, barre latérale noire bordée de rouge, photo
+d'un immeuble de bureaux en fond de la page de scoring et fond néon sur le
+tableau de bord (images chargées depuis leurs URL d'origine). Seuls ajouts :
+une mention discrète « Données fictives — démonstration » sous le titre et
+quelques règles CSS `@media` pour un affichage correct sur tablette et mobile
+(fond en `background-size: cover`, sans `background-attachment: fixed`).
 
 ## Stack technique
 
@@ -47,7 +38,7 @@ du portefeuille de prêts.
 |---|---|
 | [Streamlit](https://streamlit.io) | Interface web multipage |
 | [scikit-learn](https://scikit-learn.org) | Modèle de classification (Pipeline, OneHotEncoder, RobustScaler) |
-| [Plotly](https://plotly.com/python/) | Jauge de score, graphiques et carte interactive |
+| [Plotly](https://plotly.com/python/) | Jauge de score, graphiques et carte interactive (fond Carto, sans jeton) |
 | [pandas](https://pandas.pydata.org) / [NumPy](https://numpy.org) | Manipulation et génération des données |
 | [joblib](https://joblib.readthedocs.io) | Sérialisation du modèle |
 
@@ -82,7 +73,7 @@ L'application est alors disponible sur <http://localhost:8501>.
 ```
 ├── app.py                       # Page principale : scoring d'un dossier
 ├── pages/
-│   └── 1_Tableau_de_bord.py     # Tableau de bord du portefeuille
+│   └── Dashboard.py             # Tableau de bord interactif
 ├── features.py                  # Préparation des variables (feature engineering)
 ├── generate_synthetic_data.py   # Génération du jeu de données fictif (seed fixe)
 ├── train_model.py               # Entraînement et sélection du modèle
@@ -91,7 +82,8 @@ L'application est alors disponible sur <http://localhost:8501>.
 │   └── agences.xlsx
 ├── model/
 │   └── model.pkl                # Pipeline scikit-learn sérialisé
-└── .streamlit/config.toml       # Thème de l'application
+├── requirements.txt             # Versions épinglées (testées en Python 3.12 et 3.13)
+└── .streamlit/config.toml       # Thème sombre
 ```
 
 ## Modèle
@@ -113,9 +105,9 @@ Projet de démonstration à but pédagogique.
 2. Cliquez sur **New app**, puis choisissez ce dépôt, la branche à déployer et le fichier principal `app.py`.
 3. Cliquez sur **Deploy** : l'application est construite puis mise en ligne sur une URL du type `https://<nom-de-l-appli>.streamlit.app`.
 
-> **Version Python** : dans **Advanced settings** (avant le déploiement), choisissez une
-> version récente de Python (3.11 ou 3.12), compatible avec les versions minimales
-> listées dans `requirements.txt`.
+> **Version Python** : dans **Advanced settings** (avant le déploiement), choisissez
+> Python 3.12 ou 3.13 : les versions épinglées dans `requirements.txt` ont été testées
+> avec ces deux versions.
 > Le modèle `model/model.pkl` étant sérialisé avec scikit-learn, gardez une version
 > de Python et de scikit-learn cohérente avec celle de l'entraînement (relancez
 > `train_model.py` en cas d'incompatibilité au chargement).
