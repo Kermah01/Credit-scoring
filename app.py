@@ -86,10 +86,13 @@ def main():
     .espace-verdict {{
         height: 283px;
     }}
-    /* Grands écrans : jauge à sa largeur d'origine (600 px) */
-    @media (min-width: 1280px) {{
-        .st-key-jauge {{
-            min-width: 600px;
+    /* Jauge : s'adapte à la largeur de sa colonne, titre proportionnel à l'écran */
+    .st-key-jauge text.title {{
+        font-size: clamp(15px, 1.45vw, 30px) !important;
+    }}
+    @media (min-width: 769px) and (max-width: 1199px) {{
+        .st-key-jauge text.title {{
+            font-size: 12px !important;
         }}
     }}
     @media (min-width: 769px) {{
@@ -110,12 +113,6 @@ def main():
         border-radius: 5px;
     }}
 
-    /* Écrans moyens (tablettes) */
-    @media (max-width: 1279px) {{
-        .st-key-jauge text.title {{
-            font-size: 22px !important;
-        }}
-    }}
     @media (max-width: 1024px) {{
         h1.titre-app {{
             font-size: 1.9rem !important;
@@ -219,7 +216,7 @@ def main():
 
         fig_jauge.update_layout(paper_bgcolor='rgba(0, 0, 0, 0.3)',
                                 plot_bgcolor='rgba(0, 0, 0, 0.3)',
-                                height=500, width=600,
+                                height=500,
                                 font={'color': 'white', 'family': 'Arial'},
                                 margin=dict(l=0, r=0, b=0, t=0, pad=0),
                                 showlegend=False,
@@ -264,7 +261,7 @@ def main():
 
         with col2:
 
-            st.plotly_chart(jauge(p), width="content", key="jauge")
+            st.plotly_chart(jauge(p), width="stretch", key="jauge")
         with col3:
             st.markdown('<div class="espace-verdict"></div>', unsafe_allow_html=True)
             if 0 <= p < 25:
@@ -285,7 +282,7 @@ def main():
         with col4:
             st.write(' ')
         with col5:
-            st.plotly_chart(jauge(0), width="content")
+            st.plotly_chart(jauge(0), width="stretch")
         with col6:
             st.write(' ')
 
